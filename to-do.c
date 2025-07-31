@@ -11,6 +11,7 @@ typedef struct node{
     struct node *next;
 }node;
 node *start = NULL;
+FILE *fp;
 node* createnode(){
     node *addr;
     addr= (node *)malloc(sizeof(node));
@@ -25,16 +26,25 @@ void edit();
 void completetodo();
 
 void deletetodo();
-
-
+void fetchdata();
+void storefile();
 int main(int argc, char const *argv[])
 {
+
     int opt;
-  
- 
+    fp =fopen("to-do.txt","r");
+   if (fp!=NULL)
+   {
+         fetchdata();   // fetch data from the file
+   }
+   
+         
+    
+    
+    
    
       label:
-      
+            
     viewtodo();
    printf("\n\t\t===============================================\n");
     printf("\t\t1. Add new To-do\n");
@@ -89,6 +99,9 @@ void inserttodo(){
         strcpy(start->data,buffer);
         start->next=NULL;
         start->status=0;// 0 is not done and 1 is done
+            fp= fopen("to-do.txt","w");
+            fprintf(fp,"%s|%d\n",start->data,start->status);
+            fclose(fp);
          printf("\nInserted into TO-DO LIST Sucessfully..\n");
         Sleep(1000); 
 
@@ -100,6 +113,7 @@ void inserttodo(){
         temp->next = start;
         temp->status=0;
         start = temp;
+        storefile();
         printf("\nInserted into TO-DO LIST Sucessfully..\n");
         Sleep(1000);
     }
@@ -107,6 +121,7 @@ void inserttodo(){
 }
 void viewtodo(){
        system("cls");
+      
      printf("\n\t\t\t********* TO-DO LIST *********\n\n");
     if (start==NULL)
     {
@@ -160,7 +175,7 @@ void edit(){
          fflush(stdin);
     printf("\nEnter edited item to the list:\t");
      fgets(buffer,sizeof(buffer),stdin);
-        buffer[strcspn(buffer, "\n")] = '\0'; 
+        buffer[strcspn(buffer, "\n")] = '\0'; // remove the \n which is at the end of buffer and insted add NULL . So, that the status doesn't show below the to-do-iteams
      node *temp,*temp2;
      temp = start;
      while (counter!=id)
@@ -170,8 +185,28 @@ void edit(){
         counter ++;
         
      }
+     
    
     strcpy(temp->data,buffer);
+    // after editing or deleting(same logic for deleting) we would rewrite whole node data inside the txt file 
+    // rather searching it(i.e the file to edit or delete) inside the txt file
+ 
+     temp2= start;
+     fp = fopen("to-do.txt","w");
+    if (fp==NULL)
+    {
+       printf("error opening");
+       exit(0);
+    }
+    
+    
+        while (temp2!=NULL)
+        {
+            fprintf(fp,"%s|%d\n",temp2->data,temp2->status);
+            temp2=temp2->next;
+        }
+        fclose(fp);
+        
     printf("\n\t\tTo-do item updated successfully!\n");
     Sleep(1000);
      
@@ -187,7 +222,7 @@ void  completetodo(){
     }else{
             printf("\n\t\t\t Enter the id of  done work:\t");
             scanf("%d",&id);
-            node *temp;
+            node *temp,*temp2;
             temp=start;
             while (counter!=id)
             {
@@ -196,6 +231,24 @@ void  completetodo(){
                 
             }
             temp->status=1; // 1 for completed
+            temp2= start;
+     fp = fopen("to-do.txt","w");
+    if (fp==NULL)
+    {
+       printf("error opening");
+       exit(0);
+    }
+    
+    
+        while (temp2!=NULL)
+        {
+            fprintf(fp,"%s|%d\n",temp2->data,temp2->status);
+            temp2=temp2->next;
+        }
+        fclose(fp);
+        
+    printf("\n\t\tTo-do item updated successfully!\n");
+    Sleep(1000);
             printf("\nUpdated To-do sucessfully..\n");
          
               Sleep(1000);
@@ -216,7 +269,7 @@ void deletetodo(){
     
      printf("\n Enter the id. to Delete item..");
      scanf("%d",&id);
-     node *temp,*temp2;
+     node *temp,*temp2 ,*temp3;
      temp = start;
      while (counter!=id)
      {
@@ -227,8 +280,89 @@ void deletetodo(){
      }
      temp2->next=temp->next;
      free(temp);
+     temp3 = start;
+     fp = fopen("to-do.txt","w");
+    if (fp==NULL)
+    {
+       printf("error opening");
+       exit(0);
+    }
+    
+    
+        while (temp3!=NULL)
+        {
+            fprintf(fp,"%s|%d\n",temp3->data,temp3->status);
+            temp3=temp3->next;
+        }
+        
+            
+    
+        
+    
+        
+    
+    fclose(fp);
      printf("\nIteam deleted Sucessfully..");
      Sleep(1000);
+
+
+}
+
+
+
+void storefile(){
+    fp = fopen("to-do.txt","a+");
+    if (fp==NULL)
+    {
+       printf("error opening");
+       exit(0);
+    }
+    
+    
+        
+            
+     fprintf(fp,"%s|%d\n",start->data,start->status);
+        
+    
+        
+    
+    fclose(fp);
+    
+    
+
+}
+
+void fetchdata(){
+    char buffer[500];
+    int status;
+        node *temp;
+    temp=start;
+    while (temp!=NULL)
+    {
+        start= temp->next;
+        free(temp);
+        temp=start;
+    }
+    
+    fp = fopen("to-do.txt","r");
+    if (fp==NULL)
+    {
+        printf("\nUnable to fetch data!!");
+        exit(0);
+    }
+
+    while (fscanf(fp,"%[^|]|%d\n",buffer,&status)==2)
+    {
+                temp = createnode();
+            strcpy(temp->data,buffer);
+        temp->next = start;
+        temp->status=status;
+        start = temp;
+        
+    }
+    
+ fclose(fp);
+    
 
 
 }

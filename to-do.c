@@ -1,9 +1,13 @@
 #include<stdio.h>
-#include<windows.h>
 #include<stdlib.h>
 #include<string.h>
 
-
+#ifdef _WIN32
+#include <windows.h>
+#elif __linux__
+#include <unistd.h>
+#define Sleep(x) usleep ((x) * 1000)
+#endif
 
 typedef struct node{
     char data[500];
@@ -27,7 +31,9 @@ void completetodo();
 
 void deletetodo();
 void fetchdata();
-void storefile();
+void storefile ();
+void clear_buffer (void);
+
 int main(int argc, char const *argv[])
 {
 
@@ -73,8 +79,10 @@ int main(int argc, char const *argv[])
                 goto label;
         case 5:
                 printf("\n By-By see you next time\n");
+#ifdef _WIN32
                 system("pause");
-                return(1);
+#endif
+                exit ( 0 );
         default:
             printf("\n invalid choice");
             Sleep(1000);
@@ -91,6 +99,7 @@ void inserttodo(){
     char buffer [500]; // temprory to sotre data
    fflush(stdin);
     printf("\nEnter new item to the list:\t");
+	clear_buffer();
      fgets(buffer,sizeof(buffer),stdin);
         buffer[strcspn(buffer, "\n")] = '\0'; // remove the new line at the end of buffer
     if (start==NULL)
@@ -120,7 +129,11 @@ void inserttodo(){
     
 }
 void viewtodo(){
+#ifdef _WIN32
        system("cls");
+#elif __linux__
+	   printf ("\x1B[2J\x1B[H");
+#endif
       
      printf("\n\t\t\t********* TO-DO LIST *********\n\n");
     if (start==NULL)
@@ -174,6 +187,7 @@ void edit(){
      scanf("%d",&id);
          fflush(stdin);
     printf("\nEnter edited item to the list:\t");
+	clear_buffer();
      fgets(buffer,sizeof(buffer),stdin);
         buffer[strcspn(buffer, "\n")] = '\0'; // remove the \n which is at the end of buffer and insted add NULL . So, that the status doesn't show below the to-do-iteams
      node *temp,*temp2;
@@ -365,4 +379,11 @@ void fetchdata(){
     
 
 
+}
+
+void
+clear_buffer (void)
+{
+  int c;
+  while ( (c = getchar ()) != '\n' && c != EOF);
 }
